@@ -34,7 +34,7 @@ jobs:
   go_test:
     uses: ./.github/workflows/go-test.yml
     with:
-      go-version: ${{ inpuits.go-version }}
+      go-version: ${{ inputs.go-version }}
       ubuntu-version: ${{ inputs.ubuntu-version }}
       working-directory: ${{ inputs.working-directory }}
     secrets:
