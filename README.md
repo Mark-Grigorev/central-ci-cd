@@ -11,7 +11,7 @@
 ```yaml
 jobs:
   lint:
-    uses: your-org/go-workflows/.github/workflows/go-lint.yml@v1
+    uses: your-org/go-workflows/.github/workflows/go/go-lint.yml@v1
     with:
       go-version: '1.23.2'      # опционально
       linter-version: 'v1.60.1'  # опционально
@@ -21,11 +21,10 @@ jobs:
 Запускает тесты с покрытием.
 
 Использование:
-```
-yaml
+```yaml
 jobs:
   test:
-    uses: your-org/go-workflows/.github/workflows/go-test.yml@v1
+    uses: your-org/go-workflows/.github/workflows/go/go-test.yml@v1
     with:
       go-version: '1.23.2'
       os: 'ubuntu-latest'
@@ -38,11 +37,10 @@ jobs:
 Объединяет линтер и тесты.
 
 Использование:
-```
-yaml
+```yaml
 jobs:
   ci:
-    uses: your-org/go-workflows/.github/workflows/go-ci-complete.yml@v1
+    uses: your-org/go-workflows/.github/workflows/go/go-ci-complete.yml@v1
     with:
       go-version: '1.23.2'
     secrets:
@@ -50,7 +48,7 @@ jobs:
 ```
 
 🎯 Использование в вашем Go проекте
-```
+```yaml
 name: CI/CD Pipeline
 
 on: 
@@ -62,7 +60,7 @@ on:
 jobs:
   # Используем готовый workflow из центрального репозитория
   ci:
-    uses: your-org/go-workflows/.github/workflows/go-ci-complete.yml@v1
+    uses: your-org/go-workflows/.github/workflows/go/go-ci-complete.yml@v1
     with:
       go-version: '1.23.2'
       linter-version: 'v1.60.1'
