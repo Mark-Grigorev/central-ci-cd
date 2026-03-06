@@ -1,0 +1,84 @@
+name: Go test
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: 'Go version to use(default:1.23.2)'
+        required: false
+        type: string
+        default: '1.23.2'
+      working-directory:
+        description: 'Working directory for the project(default .)'
+        required: false
+        type: string
+        default: '.'
+      timeout:
+        description: 'Linter timeout(default 5m)'
+        required: false
+        type: string
+        default: '5m'
+      ubuntu-version:
+        description: 'Ubuntu vers for actions run(default:22.04)'
+        required: false
+        type: string
+        default: '22.04'
+      test-flags:
+        description: 'Flags for go test'
+        required: false
+        type: string
+        default: '-v -race -coveprofile=coverage.txt -covermode=atomic'
+      upload-coverage:
+        description: 'Upload coverage report'
+        required: false
+        type: boolean
+        default: true
+    
+    secrets:
+      CODECOV_TOKEN:
+        description: 'Topken for codecov'
+        required: false
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-${{ inputs.ubuntu_version }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-verion }}
+          cache: true
+      
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test ${{ inputs.test_flags }} ./...
+
+      - name: Show coverage
+        if: inputs.upload-coverage == true
+        run:  go tool cover -func=coverage.txt
+
+      - name: Upload coverage to Codecov
+        if: inputs.upload-coverage == true && secrets.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ${{ inputs.working-directory }}/coverage.txt
+          flags: unittests
+      
+      - name: Upload test results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.sha }}
+          path: ${{ inputs.working-directory }}/coverage.txt
+          retention-days: 7
