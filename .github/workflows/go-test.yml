@@ -14,12 +14,12 @@ on:
         type: string
         default: '.'
       timeout:
-        description: 'Linter timeout(default 5m)'
+        description: 'Test timeout(default 5m)'
         required: false
         type: string
         default: '5m'
       ubuntu-version:
-        description: 'Ubuntu vers for actions run(default:22.04)'
+        description: 'Ubuntu version for actions runner(default:22.04)'
         required: false
         type: string
         default: '22.04'
@@ -27,7 +27,7 @@ on:
         description: 'Flags for go test'
         required: false
         type: string
-        default: '-v -race -coveprofile=coverage.txt -covermode=atomic'
+        default: '-v -race -coverprofile=coverage.txt -covermode=atomic'
       upload-coverage:
         description: 'Upload coverage report'
         required: false
@@ -36,13 +36,13 @@ on:
     
     secrets:
       CODECOV_TOKEN:
-        description: 'Topken for codecov'
+        description: 'Token for codecov'
         required: false
 
 jobs:
   test:
     name: Run Tests
-    runs-on: ubuntu-${{ inputs.ubuntu_version }}
+    runs-on: ubuntu-${{ inputs.ubuntu-version }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -54,26 +54,27 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ inputs.go-verion }}
+          go-version: ${{ inputs.go-version }}
           cache: true
       
       - name: Download dependencies
         run: go mod download
 
       - name: Run tests
-        run: go test ${{ inputs.test_flags }} ./...
+        run: go test ${{ inputs.test-flags }} ./...
 
       - name: Show coverage
         if: inputs.upload-coverage == true
-        run:  go tool cover -func=coverage.txt
+        run: go tool cover -func=coverage.txt
 
       - name: Upload coverage to Codecov
-        if: inputs.upload-coverage == true && secrets.CODECOV_TOKEN != ''
+        if: inputs.upload-coverage == true
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ${{ inputs.working-directory }}/coverage.txt
           flags: unittests
+        continue-on-error: true
       
       - name: Upload test results as artifact
         if: always()
