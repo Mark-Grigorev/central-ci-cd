@@ -64,7 +64,7 @@ jobs:
     with:
       go-version: '1.23.2'
       linter-version: 'v1.60.1'
-      os: 'ubuntu-22.04'
+      ubuntu-version: 'ubuntu-22.04'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 ```
