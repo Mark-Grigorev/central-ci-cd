@@ -1,0 +1,41 @@
+name: Go complete CI
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        required: false
+        type: string
+        default: '1.23.2'
+      linter-version:
+        required: false
+        type: string
+        default: 'v1.60.1'
+      ubuntu-version:
+        required: false
+        type: string
+        default: '22.04'
+      working-directory:
+        required: false
+        type: string
+        default: '.'
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+jobs:
+  lint: 
+    uses: ./.github/workflows/go-lint.yml
+    with:
+      go-version: ${{ inputs.go-version }}
+      linter-version: ${{ inputs.linter-version }}
+      working-directory: ${{ inputs.working-directory }}
+      ubuntu-version: ${{ inputs.ubuntu-version }}
+  go_test:
+    uses: ./.github/workflows/go-test.yml
+    with:
+      go-version: ${{ inpuits.go-version }}
+      ubuntu-version: ${{ inputs.ubuntu-version }}
+      working-directory: ${{ inputs.working-directory }}
+    secrets:
+      CODECOV_TOKEN: ${{ inputs.CODECOVS_TOKEN }}
