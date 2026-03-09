@@ -66,20 +66,3 @@ jobs:
       - name: Show coverage
         if: inputs.upload-coverage == true
         run: go tool cover -func=coverage.txt
-
-      - name: Upload coverage to Codecov
-        if: inputs.upload-coverage == true
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ${{ inputs.working-directory }}/coverage.txt
-          flags: unittests
-        continue-on-error: true
-      
-      - name: Upload test results as artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ github.sha }}
-          path: ${{ inputs.working-directory }}/coverage.txt
-          retention-days: 7
