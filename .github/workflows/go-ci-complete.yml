@@ -39,3 +39,10 @@ jobs:
       working-directory: ${{ inputs.working-directory }}
     secrets:
       CODECOV_TOKEN: ${{ inputs.CODECOVS_TOKEN }}
+  go_build:
+    uses: ./.github/workflows/go-build.yml
+    needs: go_test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))'
+    with:
+      go-version: ${{ inputs.go-version }}
+      binary-name: ${{ inputs.binary-name }}
