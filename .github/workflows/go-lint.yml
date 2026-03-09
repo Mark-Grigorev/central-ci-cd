@@ -32,7 +32,7 @@ on:
 jobs:
   lint:
     name: Run golangci-lint
-    runs-on: ubuntu-${{ inputs.ubuntu_version }}
+    runs-on: ubuntu-${{ inputs.ubuntu-version }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
