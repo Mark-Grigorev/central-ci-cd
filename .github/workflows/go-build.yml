@@ -1,0 +1,115 @@
+name: Go Build
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        required: false
+        type: string
+        default: '1.23.2'
+      working-directory:
+        required: false
+        type: string
+        default: '.'
+      service-name:
+        required: true
+        type: string
+        description: 'Name of the service (e.g., auth, api, worker)'
+      build-flags:
+        required: false
+        type: string
+        default: '-ldflags="-s -w"'
+      platforms:
+        required: false
+        type: string
+        default: 'linux/amd64,linux/arm64'
+
+jobs:
+  prepare-name:
+    name: Prepare binary name
+    runs-on: ubuntu-latest
+    outputs:
+      binary-name: ${{ steps.generate-name.outputs.binary-name }}
+      version: ${{ steps.generate-name.outputs.version }}
+    
+    steps:
+      - name: Generate binary name
+        id: generate-name
+        run: |
+          SERVICE="${{ inputs.service-name }}"
+          
+          # Определяем версию/ветку/тег
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Это тег - используем его как версию
+            VERSION="${GITHUB_REF#refs/tags/}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "binary-name=${SERVICE}-${VERSION}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/heads/* ]]; then
+            # Это ветка - используем имя ветки
+            BRANCH="${GITHUB_REF#refs/heads/}"
+            # Очищаем имя ветки (заменяем / на -)
+            BRANCH_CLEAN=$(echo "$BRANCH" | sed 's/\//-/g')
+            echo "version=$BRANCH_CLEAN" >> $GITHUB_OUTPUT
+            echo "binary-name=${SERVICE}-${BRANCH_CLEAN}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/pull/* ]]; then
+            # Это PR - используем номер PR
+            PR_NUMBER=$(echo "${{ github.ref }}" | cut -d'/' -f3)
+            echo "version=pr-$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "binary-name=${SERVICE}-pr-$PR_NUMBER" >> $GITHUB_OUTPUT
+          else
+            # Fallback - используем SHA коммита
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+            echo "version=$SHORT_SHA" >> $GITHUB_OUTPUT
+            echo "binary-name=${SERVICE}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Generated binary name: $(cat $GITHUB_OUTPUT | grep binary-name)"
+
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    needs: prepare-name
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    
+    strategy:
+      matrix:
+        platform: ${{ fromJSON(format('[{0}]', inputs.platforms)) }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: true
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Extract platform info
+        id: platform
+        run: |
+          OS=$(echo ${{ matrix.platform }} | cut -d'/' -f1)
+          ARCH=$(echo ${{ matrix.platform }} | cut -d'/' -f2)
+          echo "os=$OS" >> $GITHUB_OUTPUT
+          echo "arch=$ARCH" >> $GITHUB_OUTPUT
+      
+      - name: Build binary
+        run: |
+          BINARY_NAME="${{ needs.prepare-name.outputs.binary-name }}"
+          GOOS=${{ steps.platform.outputs.os }} \
+          GOARCH=${{ steps.platform.outputs.arch }} \
+          go build ${{ inputs.build-flags }} \
+            -o dist/${BINARY_NAME}-${{ steps.platform.outputs.os }}-${{ steps.platform.outputs.arch }} \
+            ./cmd/app
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.prepare-name.outputs.binary-name }}-${{ steps.platform.outputs.os }}-${{ steps.platform.outputs.arch }}
+          path: ${{ inputs.working-directory }}/dist/
+          retention-days: 7

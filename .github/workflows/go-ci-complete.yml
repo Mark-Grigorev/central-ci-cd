@@ -19,6 +19,9 @@ on:
         required: false
         type: string
         default: '.'
+      binary-name:  # Обязательный параметр для сборки
+        required: true
+        type: string
     secrets:
       CODECOV_TOKEN:
         required: false
@@ -31,18 +34,22 @@ jobs:
       linter-version: ${{ inputs.linter-version }}
       working-directory: ${{ inputs.working-directory }}
       ubuntu-version: ${{ inputs.ubuntu-version }}
+
   go_test:
     uses: ./.github/workflows/go-test.yml
+    needs: lint
     with:
       go-version: ${{ inputs.go-version }}
       ubuntu-version: ${{ inputs.ubuntu-version }}
       working-directory: ${{ inputs.working-directory }}
     secrets:
-      CODECOV_TOKEN: ${{ inputs.CODECOVS_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   go_build:
     uses: ./.github/workflows/go-build.yml
     needs: go_test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))'
+    # Запускаем только при push в main или создании тега
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
     with:
       go-version: ${{ inputs.go-version }}
       binary-name: ${{ inputs.binary-name }}
