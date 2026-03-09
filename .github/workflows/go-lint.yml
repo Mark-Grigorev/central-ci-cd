@@ -28,6 +28,11 @@ on:
         required: false
         type: string
         default: '22.04'
+      linter-config-path:
+        description: 'Path to config linter(default .golangci.yml)'
+        required: false
+        type: string
+        default: '.golangci.yml'
 
 jobs:
   lint:
@@ -50,5 +55,5 @@ jobs:
         uses: golangci/golangci-lint-action@v4
         with:
           version: ${{ inputs.linter-version }}
-          args: --timeout=${{ inputs.timeout }}
+          args: --timeout=${{ inputs.timeout }} --config=${{ inputs.linter-config-path }}
           working-directory: ${{ inputs.working-directory }}
