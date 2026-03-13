@@ -38,4 +38,4 @@ jobs:
       ubuntu-version: ${{ inputs.ubuntu-version }}
       working-directory: ${{ inputs.working-directory }}
     secrets:
-      CODECOV_TOKEN: ${{ inputs.CODECOVS_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

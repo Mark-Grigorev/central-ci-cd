@@ -48,7 +48,7 @@ jobs:
       - name: Setup code
         uses: actions/setup-go@v5
         with: 
-          go-version: ${{ inputs.go_version }}
+          go-version: ${{ inputs.go-version }}
           cache: true
       
       - name: Download dependencies
