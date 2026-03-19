@@ -53,7 +53,7 @@ jobs:
         run: go build ${{ inputs.build-flags }} -o ${{ inputs.output-binary }} ./...
 
       - name: Upload binary as artifact
-        uses: actions/updload-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.output-binary }}
           path: ${{ inputs.working-directory }}/${{ inputs.output-binary }}
