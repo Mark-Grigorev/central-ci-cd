@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go-version }}
-          chache: true
+          cache: true
 
       - name: Start govulncheck
         run: |
