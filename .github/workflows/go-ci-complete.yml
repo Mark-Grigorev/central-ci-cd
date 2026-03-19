@@ -24,6 +24,7 @@ on:
         required: false
 
 jobs:
+  
   lint: 
     uses: ./.github/workflows/go-lint.yml
     with:
@@ -31,6 +32,7 @@ jobs:
       linter-version: ${{ inputs.linter-version }}
       working-directory: ${{ inputs.working-directory }}
       ubuntu-version: ${{ inputs.ubuntu-version }}
+
   go_test:
     uses: ./.github/workflows/go-test.yml
     with:
@@ -39,3 +41,21 @@ jobs:
       working-directory: ${{ inputs.working-directory }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  
+  go_vuln_check:
+    needs: [lint]
+    if: success()
+    uses: ./.github/workflows/go-security-scan.yml  
+    with:
+      go-version: ${{ inputs.go-version }}
+      ubuntu-version: ${{ inputs.ubuntu-version }}
+      working-directory: ${{ inputs.working-directory }}
+
+  go_build:
+    needs: [lint, go_test]
+    if: success()
+    uses: ./.github/workflows/go-build.yml
+    with:
+      go-version: ${{ inputs.go-version }}  
+      ubuntu-version: ${{ inputs.ubuntu-version }}
+      working-directory: ${{ inputs.working-directory }}
