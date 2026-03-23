@@ -62,9 +62,59 @@ jobs:
 
 ---
 
-### 3. `go-ci-complete.yml` — линтер + тесты
+### 3. `go-build.yml` — сборка приложения
 
-Объединяет `go-lint.yml` и `go-test.yml` в один вызов. Оба джоба запускаются параллельно.
+Собирает бинарный файл и загружает его как артефакт (хранится 7 дней).
+
+| Параметр | Тип | По умолчанию | Описание |
+|---|---|---|---|
+| `go-version` | string | `1.23.2` | Версия Go |
+| `build-flags` | string | `-v` | Флаги `go build` |
+| `output-binary` | string | `app` | Имя выходного бинарного файла |
+| `working-directory` | string | `.` | Рабочая директория |
+| `ubuntu-version` | string | `22.04` | Версия Ubuntu раннера |
+
+```yaml
+jobs:
+  build:
+    uses: your-org/central_ci_cd/.github/workflows/go-build.yml@main
+    with:
+      go-version: '1.23.2'
+      build-flags: '-v'
+      output-binary: 'app'
+      working-directory: '.'
+```
+
+---
+
+### 4. `go-security-scan.yml` — сканирование уязвимостей
+
+Запускает [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) для проверки известных уязвимостей в зависимостях.
+
+| Параметр | Тип | По умолчанию | Описание |
+|---|---|---|---|
+| `go-version` | string | `1.23.2` | Версия Go |
+| `working-directory` | string | `.` | Рабочая директория |
+| `ubuntu-version` | string | `22.04` | Версия Ubuntu раннера |
+
+```yaml
+jobs:
+  security:
+    uses: your-org/central_ci_cd/.github/workflows/go-security-scan.yml@main
+    with:
+      go-version: '1.23.2'
+      working-directory: '.'
+```
+
+---
+
+### 5. `go-ci-complete.yml` — полный CI pipeline
+
+Объединяет все четыре workflow в один вызов с умным управлением зависимостями:
+
+- `lint` и `go_test` — запускаются параллельно
+- `go_vuln_check` — запускается после успешного `lint`
+- `go_build` — запускается после успешных `lint` + `go_test`
 
 | Параметр | Тип | По умолчанию | Описание |
 |---|---|---|---|

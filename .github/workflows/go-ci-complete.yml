@@ -4,18 +4,22 @@ on:
   workflow_call:
     inputs:
       go-version:
+        description: 'Go version to use (default: 1.23.2)'
         required: false
         type: string
         default: '1.23.2'
       linter-version:
+        description: 'golangci-lint version to use (default: v1.60.1)'
         required: false
         type: string
         default: 'v1.60.1'
       ubuntu-version:
+        description: 'Ubuntu version for actions runner (default: 22.04)'
         required: false
         type: string
         default: '22.04'
       working-directory:
+        description: 'Working directory for the project (default: .)'
         required: false
         type: string
         default: '.'
@@ -24,8 +28,8 @@ on:
         required: false
 
 jobs:
-  
-  lint: 
+
+  lint:
     uses: ./.github/workflows/go-lint.yml
     with:
       go-version: ${{ inputs.go-version }}
@@ -41,11 +45,11 @@ jobs:
       working-directory: ${{ inputs.working-directory }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  
+
   go_vuln_check:
     needs: [lint]
     if: success()
-    uses: ./.github/workflows/go-security-scan.yml  
+    uses: ./.github/workflows/go-security-scan.yml
     with:
       go-version: ${{ inputs.go-version }}
       ubuntu-version: ${{ inputs.ubuntu-version }}
@@ -56,6 +60,6 @@ jobs:
     if: success()
     uses: ./.github/workflows/go-build.yml
     with:
-      go-version: ${{ inputs.go-version }}  
+      go-version: ${{ inputs.go-version }}
       ubuntu-version: ${{ inputs.ubuntu-version }}
       working-directory: ${{ inputs.working-directory }}
