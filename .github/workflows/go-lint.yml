@@ -4,32 +4,32 @@ on:
   workflow_call:
     inputs:
       go-version:
-        description: 'Go version to use(default:1.23.2)'
+        description: 'Go version to use (default: 1.23.2)'
         required: false
         type: string
         default: '1.23.2'
       linter-version:
-        description: 'Golangci-linter version to use(default:1.60.1)'
+        description: 'golangci-lint version to use (default: v1.60.1)'
         required: false
         type: string
         default: 'v1.60.1'
       working-directory:
-        description: 'Working directory for the project(default .)'
+        description: 'Working directory for the project (default: .)'
         required: false
         type: string
         default: '.'
       timeout:
-        description: 'Linter timeout(default 5m)'
+        description: 'Linter timeout (default: 5m)'
         required: false
         type: string
         default: '5m'
       ubuntu-version:
-        description: 'Ubuntu vers for actions run(default:22.04)'
+        description: 'Ubuntu version for actions runner (default: 22.04)'
         required: false
         type: string
         default: '22.04'
       linter-config-path:
-        description: 'Path to config linter(default .golangci.yml)'
+        description: 'Path to golangci-lint config (default: .golangci.yml)'
         required: false
         type: string
         default: '.golangci.yml'
@@ -42,20 +42,20 @@ jobs:
       run:
         working-directory: ${{ inputs.working-directory }}
     steps:
-      - name: Checout code 
-        uses: actions/checkout@v4
-    
-      - name: Setup code
-        uses: actions/setup-go@v5
-        with: 
+      - name: Checout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
           go-version: ${{ inputs.go-version }}
           cache: true
-      
+
       - name: Download dependencies
         run: go mod tidy && go mod download
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v9
         with:
           version: ${{ inputs.linter-version }}
           args: --timeout=${{ inputs.timeout }} --config=${{ inputs.linter-config-path }}

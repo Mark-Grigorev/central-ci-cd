@@ -4,22 +4,22 @@ on:
   workflow_call:
     inputs:
       go-version:
-        description: 'Go version to use(default:1.23.2)'
+        description: 'Go version to use (default: 1.23.2)'
         required: false
         type: string
         default: '1.23.2'
       working-directory:
-        description: 'Working directory for the project(default .)'
+        description: 'Working directory for the project (default: .)'
         required: false
         type: string
         default: '.'
       timeout:
-        description: 'Test timeout(default 5m)'
+        description: 'Test timeout (default: 5m)'
         required: false
         type: string
         default: '5m'
       ubuntu-version:
-        description: 'Ubuntu version for actions runner(default:22.04)'
+        description: 'Ubuntu version for actions runner (default: 22.04)'
         required: false
         type: string
         default: '22.04'
@@ -29,11 +29,11 @@ on:
         type: string
         default: '-v -race -coverprofile=coverage.txt -covermode=atomic'
       upload-coverage:
-        description: 'Upload coverage report'
+        description: 'Show coverage report after tests'
         required: false
         type: boolean
         default: true
-    
+
     secrets:
       CODECOV_TOKEN:
         description: 'Token for codecov'
@@ -46,17 +46,17 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ inputs.go-version }}
           cache: true
-      
+
       - name: Download dependencies
         run: go mod download
 
