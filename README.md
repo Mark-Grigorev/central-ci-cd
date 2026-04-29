@@ -39,7 +39,7 @@ jobs:
 |---|---|---|---|
 | `go-version` | string | `1.23.2` | Версия Go |
 | `test-flags` | string | `-v -race -coverprofile=coverage.txt -covermode=atomic` | Флаги `go test` |
-| `upload-coverage` | boolean | `true` | Выводить отчёт покрытия |
+| `upload-coverage` | boolean | `true` | Загружать отчёт покрытия в Codecov |
 | `timeout` | string | `5m` | Таймаут тестов |
 | `working-directory` | string | `.` | Рабочая директория |
 | `ubuntu-version` | string | `22.04` | Версия Ubuntu раннера |
@@ -141,9 +141,50 @@ jobs:
 
 ---
 
-## Пример: полный CI/CD pipeline
+### 6. `docker-publish.yml` — публикация Docker-образа в GHCR
+
+Собирает Docker-образ и публикует его в [GitHub Container Registry](https://ghcr.io). Теги генерируются автоматически из git-тегов вида `v1.2.3`:
+
+- `1.2.3`
+- `1.2`
+- `latest`
+
+Сборка кешируется через GitHub Actions Cache (`cache-from/cache-to: type=gha`).
+
+> **Примечание.** Workflow публикует образ, но не деплоит его — это артефакт релиза, а не полноценный CD. Для автоматического деплоя потребуется дополнительный шаг (SSH на сервер, обновление манифеста, вызов платформенного API и т.д.).
+
+| Параметр | Тип | Обязательный | По умолчанию | Описание |
+|---|---|---|---|---|
+| `image-name` | string | да | — | Полное имя образа (например, `ghcr.io/your-org/app`) |
+| `user-name` | string | да | — | Имя пользователя для авторизации в ghcr.io |
+| `dockerfile` | string | нет | `Dockerfile` | Путь к Dockerfile |
+| `build-args` | string | нет | `''` | Аргументы сборки (`ARG` в Dockerfile) |
+| `ubuntu-version` | string | нет | `22.04` | Версия Ubuntu раннера |
+
+| Секрет | Обязательный | Описание |
+|---|---|---|
+| `REGISTRY_TOKEN` | да | `secrets.GITHUB_TOKEN` с правом `packages: write` или PAT |
 
 ```yaml
+jobs:
+  publish:
+    uses: your-org/central_ci_cd/.github/workflows/docker-publish.yml@main
+    with:
+      image-name: 'ghcr.io/your-org/your-app'
+      user-name: 'your-org'
+      dockerfile: 'Dockerfile'
+    secrets:
+      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+---
+
+## Пример: CI + публикация образа по тегу
+
+Типовая схема: CI запускается на каждый пуш и PR, а публикация образа — только при создании git-тега.
+
+```yaml
+# .github/workflows/ci.yml
 name: CI
 
 on:
@@ -159,6 +200,25 @@ jobs:
       go-version: '1.23.2'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+```
+
+```yaml
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    uses: your-org/central_ci_cd/.github/workflows/docker-publish.yml@main
+    with:
+      image-name: 'ghcr.io/your-org/your-app'
+      user-name: 'your-org'
+    secrets:
+      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 Замените `your-org` на имя вашей GitHub-организации или аккаунта.
